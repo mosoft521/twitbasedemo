@@ -1,9 +1,11 @@
 package HBaseIA.TwitBase.coprocessors;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
+import HBaseIA.TwitBase.coprocessors.Sum.SumRequest;
+import HBaseIA.TwitBase.coprocessors.Sum.SumResponse;
+import HBaseIA.TwitBase.coprocessors.Sum.SumService;
+import com.google.protobuf.RpcCallback;
+import com.google.protobuf.RpcController;
+import com.google.protobuf.Service;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.Coprocessor;
 import org.apache.hadoop.hbase.CoprocessorEnvironment;
@@ -15,13 +17,9 @@ import org.apache.hadoop.hbase.protobuf.ResponseConverter;
 import org.apache.hadoop.hbase.regionserver.InternalScanner;
 import org.apache.hadoop.hbase.util.Bytes;
 
-import com.google.protobuf.RpcCallback;
-import com.google.protobuf.RpcController;
-import com.google.protobuf.Service;
-
-import HBaseIA.TwitBase.coprocessors.Sum.SumRequest;
-import HBaseIA.TwitBase.coprocessors.Sum.SumResponse;
-import HBaseIA.TwitBase.coprocessors.Sum.SumService;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SumEndPoint extends SumService implements Coprocessor, CoprocessorService {
 
@@ -35,7 +33,7 @@ public class SumEndPoint extends SumService implements Coprocessor, CoprocessorS
     @Override
     public void start(CoprocessorEnvironment env) throws IOException {
         if (env instanceof RegionCoprocessorEnvironment) {
-            this.env = (RegionCoprocessorEnvironment)env;
+            this.env = (RegionCoprocessorEnvironment) env;
         } else {
             throw new CoprocessorException("Must be loaded on a table region!");
         }
@@ -57,16 +55,16 @@ public class SumEndPoint extends SumService implements Coprocessor, CoprocessorS
             scanner = env.getRegion().getScanner(scan);
             List<Cell> results = new ArrayList<Cell>();
             boolean hasMore = false;
-                        long sum = 0L;
-                do {
-                        hasMore = scanner.next(results);
-                        for (Cell cell : results) {
-                            sum = sum + 1;
-                     }
-                        results.clear();
-                } while (hasMore);
+            long sum = 0L;
+            do {
+                hasMore = scanner.next(results);
+                for (Cell cell : results) {
+                    sum = sum + 1;
+                }
+                results.clear();
+            } while (hasMore);
 
-                response = SumResponse.newBuilder().setSum(sum).build();
+            response = SumResponse.newBuilder().setSum(sum).build();
 
         } catch (IOException ioe) {
             ResponseConverter.setControllerException(controller, ioe);
@@ -74,7 +72,8 @@ public class SumEndPoint extends SumService implements Coprocessor, CoprocessorS
             if (scanner != null) {
                 try {
                     scanner.close();
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             }
         }
         done.run(response);
